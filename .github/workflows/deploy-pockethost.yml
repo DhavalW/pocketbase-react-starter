@@ -1,0 +1,86 @@
+name: Deploy to PocketHost
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Deployment target"
+        required: true
+        default: "test"
+        type: choice
+        options:
+          - test
+          - live
+
+jobs:
+  deploy:
+    name: Build & Deploy (${{ github.event.inputs.target }})
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+        # Outputs to ../pb_public/ which PocketBase serves
+
+      # ── Resolve target-specific secrets ────────────────────────────────
+      - name: Resolve instance name
+        id: instance
+        run: |
+          if [ "${{ github.event.inputs.target }}" = "live" ]; then
+            echo "name=${{ secrets.POCKETHOST_INSTANCE_LIVE }}" >> "$GITHUB_OUTPUT"
+            echo "ftp_password=${{ secrets.POCKETHOST_FTP_PASSWORD_LIVE }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "name=${{ secrets.POCKETHOST_INSTANCE_TEST }}" >> "$GITHUB_OUTPUT"
+            echo "ftp_password=${{ secrets.POCKETHOST_FTP_PASSWORD_TEST }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      # ── Upload pb_public/ (compiled frontend) ──────────────────────────
+      - name: Deploy pb_public
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.6
+        with:
+          server: ${{ steps.instance.outputs.name }}.pockethost.io
+          username: ${{ steps.instance.outputs.name }}
+          password: ${{ steps.instance.outputs.ftp_password }}
+          protocol: ftps
+          local-dir: ./pb_public/
+          server-dir: ./pb_public/
+          state-name: .ftp-deploy-sync-state-pb_public.json
+
+      # ── Upload pb_hooks/ (server-side JS) ──────────────────────────────
+      - name: Deploy pb_hooks
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.6
+        with:
+          server: ${{ steps.instance.outputs.name }}.pockethost.io
+          username: ${{ steps.instance.outputs.name }}
+          password: ${{ steps.instance.outputs.ftp_password }}
+          protocol: ftps
+          local-dir: ./pb_hooks/
+          server-dir: ./pb_hooks/
+          state-name: .ftp-deploy-sync-state-pb_hooks.json
+
+      # ── Upload pb_migrations/ (schema migrations) ──────────────────────
+      - name: Deploy pb_migrations
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.6
+        with:
+          server: ${{ steps.instance.outputs.name }}.pockethost.io
+          username: ${{ steps.instance.outputs.name }}
+          password: ${{ steps.instance.outputs.ftp_password }}
+          protocol: ftps
+          local-dir: ./pb_migrations/
+          server-dir: ./pb_migrations/
+          state-name: .ftp-deploy-sync-state-pb_migrations.json
