@@ -1,4 +1,4 @@
-# PocketBase Starter Template
+# PocketBase React Starter Template with one-click staged deploy to Pockethost.io
 
 A batteries-included GitHub template for building full-stack apps with:
 
