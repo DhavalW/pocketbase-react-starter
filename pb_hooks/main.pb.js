@@ -26,11 +26,12 @@ onBootstrap((e) => {
  *
  * routerAdd(method, path, handler, ...middlewares)
  *
- * The handler receives a standard echo.Context (c).
- * Return c.json(statusCode, payload) to send a JSON response.
+ * The handler receives a core.RequestEvent (e).
+ * Return e.json(statusCode, payload) to send a JSON response.
+ * Namespace custom routes (e.g. /api/myapp/...) to avoid system-route clashes.
  */
-routerAdd("GET", "/api/ping", (c) => {
-  return c.json(200, { ok: true, ts: new Date().toISOString() });
+routerAdd("GET", "/api/myapp/ping", (e) => {
+  return e.json(200, { ok: true, ts: new Date().toISOString() });
 });
 
 /**
@@ -59,10 +60,16 @@ onRecordCreateRequest((e) => {
  * cronAdd(id, expression, handler)
  *
  * Expressions follow standard cron syntax (UTC).
- * Uncomment and adapt as needed.
+ *
+ * ⚠ On PocketHost, instances hibernate after ~5s idle, so cronAdd jobs
+ * silently miss their schedule. For reliable scheduled work, expose a
+ * token-protected route and trigger it via PocketHost Webhooks — see
+ * docs/POCKETBASE_AI_AGENT_GUIDE.md §10.3.
  */
 
 // cronAdd("daily-cleanup", "0 2 * * *", () => {
 //   console.log("[cron] running daily cleanup");
-//   // $app.dao().runInTransaction(...)
+//   $app.runInTransaction((txApp) => {
+//     // txApp.db().newQuery("DELETE FROM ... WHERE ...").execute()
+//   });
 // });

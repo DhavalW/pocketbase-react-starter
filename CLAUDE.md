@@ -6,7 +6,7 @@ Stack: PocketBase (JS hooks in `pb_hooks/`, migrations in `pb_migrations/`) + Re
 
 Non-negotiables (details and rationale in the guide):
 
-- Modern API only — never `Dao(...)`, `$app.dao()`, `schema:`/`options:` field shape, `onRecordBefore*`/`onRecordAfter*Request` hook names, or `migrate((db) => ...)`. (`pb_migrations/0001_initial_schema.js` is legacy-style — do not copy it.)
+- Modern API only — never `Dao(...)`, `$app.dao()`, `schema:`/`options:` field shape, `onRecordBefore*`/`onRecordAfter*Request` hook names, or `migrate((db) => ...)`. (`pb_migrations/0001_initial_schema.js` is a correct modern-style example.)
 - Every hook handler calls `e.next()`; use `e.app` inside handlers, `app` inside migrations, `txApp` inside transactions.
 - `pb_hooks` JS is synchronous Goja: no async/await, fetch, setTimeout, Node APIs, or npm. Handlers can't see top-level variables — `require()` inside the handler.
 - Set all five API rules explicitly on new collections (`null` = superuser-only, `""` = public); verify rules as a non-superuser.

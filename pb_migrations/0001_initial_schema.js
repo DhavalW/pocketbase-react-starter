@@ -6,52 +6,45 @@
  * Creates the starter "items" collection as a concrete example.
  * Replace or extend with your own collections.
  *
- * Docs: https://pocketbase.io/docs/js-migrations/
+ * Written for the modern (v0.23+) PocketBase API — see
+ * docs/POCKETBASE_AI_AGENT_GUIDE.md §4 before editing.
  */
 migrate(
   // ── UP ──────────────────────────────────────────────────────────────────
-  (db) => {
-    const collection = new Collection({
-      name: "items",
-      type: "base",
-      listRule: "",   // anyone can list
-      viewRule: "",   // anyone can view
-      createRule: "",  // anyone can create (lock down as needed)
-      updateRule: 'id = @request.auth.id',  // only owner can update
-      deleteRule: 'id = @request.auth.id',  // only owner can delete
+  (app) => {
+    const users = app.findCollectionByNameOrId("users");
 
-      schema: [
-        {
-          name: "name",
-          type: "text",
-          required: true,
-          options: { min: 1, max: 255 },
-        },
-        {
-          name: "description",
-          type: "text",
-          required: false,
-          options: { max: 2000 },
-        },
+    const collection = new Collection({
+      type: "base",
+      name: "items",
+
+      // null = superuser-only, "" = public, string = filter expression
+      listRule: "", // anyone can list
+      viewRule: "", // anyone can view
+      createRule: "@request.auth.id != '' && owner = @request.auth.id", // authed users create as themselves
+      updateRule: "@request.auth.id != '' && owner = @request.auth.id", // only owner can update
+      deleteRule: "@request.auth.id != '' && owner = @request.auth.id", // only owner can delete
+
+      fields: [
+        { name: "name", type: "text", required: true, min: 1, max: 255 },
+        { name: "description", type: "text", max: 2000 },
         {
           name: "status",
           type: "select",
           required: true,
-          options: {
-            maxSelect: 1,
-            values: ["active", "archived"],
-          },
+          maxSelect: 1,
+          values: ["active", "archived"],
         },
         {
           name: "owner",
           type: "relation",
-          required: false,
-          options: {
-            collectionId: "_pb_users_auth_",
-            cascadeDelete: true,
-            maxSelect: 1,
-          },
+          required: true,
+          maxSelect: 1,
+          collectionId: users.id,
+          cascadeDelete: true,
         },
+        { name: "created", type: "autodate", onCreate: true },
+        { name: "updated", type: "autodate", onCreate: true, onUpdate: true },
       ],
 
       indexes: [
@@ -60,12 +53,11 @@ migrate(
       ],
     });
 
-    return Dao(db).saveCollection(collection);
+    app.save(collection);
   },
 
   // ── DOWN ─────────────────────────────────────────────────────────────────
-  (db) => {
-    const collection = Dao(db).findCollectionByNameOrId("items");
-    return Dao(db).deleteCollection(collection);
+  (app) => {
+    app.delete(app.findCollectionByNameOrId("items"));
   }
 );

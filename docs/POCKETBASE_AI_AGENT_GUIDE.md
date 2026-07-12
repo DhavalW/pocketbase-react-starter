@@ -68,7 +68,7 @@ PocketBase v0.23.0 (Nov 2024) rewrote the extension API. Everything below **left
 | `$tokens.recordAuthToken($app, r)` | `record.newAuthToken()` |
 | SDK: `pb.authStore.model`, `pb.admins.authWithPassword`, `pb.files.getUrl` | `pb.authStore.record`, `pb.collection("_superusers").authWithPassword`, `pb.files.getURL` |
 
-⚠️ **This repo's `pb_migrations/0001_initial_schema.js` is written in the legacy style** (`Dao(db)`, `schema:`, nested `options:`). Do **not** imitate it — it predates the current docs. Write new migrations per §4, and treat that file as a candidate for rewrite if schema work is requested.
+`pb_migrations/0001_initial_schema.js` in this repo is written in the modern style and is a safe reference. If you ever encounter `Dao(db)`, `schema:`, or nested `options:` in a migration (older forks/tutorials), rewrite it per §4 instead of extending it.
 
 Other v0.23 behavior changes to remember:
 - Multi-`file` uploads now **replace** existing files; append with the `+` modifier (`"documents+": file`).

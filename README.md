@@ -148,16 +148,19 @@ Hooks live in `pb_hooks/` and are plain JavaScript files executed inside PocketB
 
 ```js
 // pb_hooks/main.pb.js
-onBeforeBootstrap((e) => {
+onBootstrap((e) => {
   console.log("PocketBase is starting up")
+  e.next() // required — every hook handler must call e.next()
 })
 
-routerAdd("GET", "/api/hello", (c) => {
-  return c.json(200, { message: "Hello from a custom route!" })
+routerAdd("GET", "/api/myapp/hello", (e) => {
+  return e.json(200, { message: "Hello from a custom route!" })
 })
 ```
 
-See the [PocketBase JS hooks docs](https://pocketbase.io/docs/js-overview/) for the full API.
+See the [PocketBase JS hooks docs](https://pocketbase.io/docs/js-overview/) for the full API,
+and [`docs/POCKETBASE_AI_AGENT_GUIDE.md`](docs/POCKETBASE_AI_AGENT_GUIDE.md) for the runtime's
+constraints (synchronous Goja, no npm/Node APIs, handler scope isolation).
 
 ---
 
@@ -168,10 +171,13 @@ Migration files in `pb_migrations/` run automatically on `pocketbase serve` or `
 ```js
 // pb_migrations/0001_initial_schema.js
 migrate(
-  (db) => { /* up — create/alter collections */ },
-  (db) => { /* down — revert changes */ }
+  (app) => { /* up — create/alter collections via app.save(...) */ },
+  (app) => { /* down — revert changes */ }
 )
 ```
+
+Both callbacks receive a transactional `app` instance (modern v0.23+ API — the older
+`(db)` / `Dao(db)` style no longer works). See the guide in `docs/` for full recipes.
 
 ---
 
