@@ -34,8 +34,16 @@ pocketbase-starter/
 │   └── main.pb.js               # Example hook: request logger + custom route
 ├── pb_migrations/               # Schema migrations (run automatically on startup)
 │   └── 0001_initial_schema.js   # Example: creates an "items" collection
-└── pb_public/                   # Built frontend — gitignored, served by PocketBase
+├── pb_public/                   # Built frontend — gitignored, served by PocketBase
+└── docs/
+    ├── POCKETBASE_AI_AGENT_GUIDE.md   # Implementation guide for AI coding agents
+    └── pocketbase.io_docs_*.pdf       # Offline PocketBase docs (v0.36.7)
 ```
+
+> **Using an AI coding agent (Claude Code, etc.)?** Point it at
+> [`docs/POCKETBASE_AI_AGENT_GUIDE.md`](docs/POCKETBASE_AI_AGENT_GUIDE.md) — it covers the
+> current PocketBase API, hook-runtime limits, API-rule semantics, and PocketHost
+> deployment constraints so changes work on the first attempt.
 
 ---
 
