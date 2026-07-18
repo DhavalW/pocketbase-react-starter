@@ -8,9 +8,12 @@ export default function App() {
 
   useEffect(() => {
     pb.collection("items")
-      .getList(1, 20, { sort: "-created" })
+      // requestKey: null opts out of SDK auto-cancellation, which otherwise
+      // aborts the first of the two StrictMode dev-mode effect runs
+      .getList(1, 20, { sort: "-created", requestKey: null })
       .then((result) => setItems(result.items))
       .catch((err) => {
+        if (err.isAbort) return;
         // Collection may not exist yet — that's fine in a fresh project
         if (err.status !== 404) setError(err.message);
       })

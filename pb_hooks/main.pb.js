@@ -39,8 +39,11 @@ routerAdd("GET", "/api/myapp/ping", (e) => {
  *  Collection record hooks
  * ─────────────────────────────────────────────
  *
- * Use onRecordCreate / onRecordUpdate / onRecordDelete (and their *Before
- * and *After variants) to enforce business rules server-side.
+ * Use the *Request hooks (onRecordCreateRequest / onRecordUpdateRequest /
+ * onRecordDeleteRequest) for API-level checks with request context, and the
+ * model hooks (onRecordCreate / onRecordAfterCreateSuccess / ...) for
+ * invariants that must hold no matter where the write comes from.
+ * Code before e.next() runs before the operation, code after it runs after.
  *
  * Example: prevent creating an item with a blank name.
  */
